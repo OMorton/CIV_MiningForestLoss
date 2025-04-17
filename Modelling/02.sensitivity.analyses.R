@@ -548,74 +548,16 @@ ggsave(path = "Outputs/Figures/Final/SM", filename = "degradation.DiD.5pix.half.
        degradation.DiD.5pix.half.forest.SM, bg = "white",
        device = "png", width = 17, height = 13, units = "cm") 
 
-## SM analysis 7 - incorporate potential spillover effects ---------------------
-## 5 pix third forest
+## SM analysis 7 - Cutting early years -----------------------------------------
+
+## first year of mining data may not necessarily reflect mines actually initiated
+## that year, it is simply the first year of data collection. Thus we rerun all 
+## models excluding 2001.
+
 load("Data/raw/forest.loss.df/masolele.mines.5pixels.third.forest.5km.master.buffer.forest.loss.df.RData")
 master.forest.loss.5pix.5km <- mine.buffer.forest.loss.df
-
-mine.forest.loss.5pix.5km.master.did <- did.prep(master.forest.loss.5pix.5km,
-                                                 lead.time = -20, post.time = 20,
-                                                 type = "loss", covariates = covariates.5pix)
-mine.forest.loss.5pix.5km.master.did.spill <- spill.tidy(mine.forest.loss.5pix.5km.master.did)
-
-forest.loss.spill.5pix.5km <- spillover.dynamic.DiD(mine.forest.loss.5pix.5km.master.did.spill, 
-                                        yname = "cumulative.forest.loss.perc")
-
-forest.loss.spillover.thirdforest.5pix.5km.master <- ggplot(filter(forest.loss.spill.5pix.5km, year.since > -7 & year.since < 11), 
-                                                aes(year.since, estimate, colour = effect,
-                                                    shape = effect)) +
-  geom_point(position = position_dodge(width = .5)) +
-  geom_errorbar(aes(ymin = lci, ymax = uci), width = 0, position = position_dodge(width = .5)) +
-  geom_vline(xintercept = -1) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  scale_colour_manual(values = c("black", "grey", "#8c510a")) +
-  scale_shape_manual(values = c(1, 1, 16)) +
-  xlab("Years since mining") +
-  ylab("Forest loss (% points)") +
-  theme_minimal() +
-  theme(legend.title = element_blank(), legend.position = "bottom")
-
-# degradation
-load("Data/raw/degradation.df/masolele.mines.5pixels.third.forest.5km.master.buffer.degradation.df.RData")
-master.degradation.5pix.5km <- mine.buffer.forest.loss.df
-
-mine.degradation.5pix.5km.master.did <- did.prep(master.degradation.5pix.5km,
-                                                 lead.time = -20, post.time = 20,
-                                                 type = "degradation", covariates = covariates.5pix)
-
-mine.degradation.5pix.5km.master.did.spill <- spill.tidy(mine.degradation.5pix.5km.master.did)
-
-degradation.spill.5pix.5km <- spillover.dynamic.DiD(mine.degradation.5pix.5km.master.did.spill, 
-                                        yname = "cumulative.degradation.perc")
-
-degradation.spillover.thirdforest.5pix.5km.master <- ggplot(filter(degradation.spill.5pix.5km, year.since > -7 & year.since < 11), 
-                                                aes(year.since, estimate, colour = effect,
-                                                    shape = effect)) +
-  geom_point(position = position_dodge(width = .5)) +
-  geom_errorbar(aes(ymin = lci, ymax = uci), width = 0, position = position_dodge(width = .5)) +
-  geom_vline(xintercept = -1) +
-  geom_hline(yintercept = 0, linetype = "dashed") +
-  scale_colour_manual(values = c("black", "grey", "#e08214")) +
-  scale_shape_manual(values = c(1, 1, 16)) +
-  xlab("Years since mining") +
-  ylab("Degradation (% points)") +
-  theme_minimal() +
-  theme(legend.title = element_blank(), legend.position = "bottom")
-
-
-spillover.arr <- ggarrange(forest.loss.spillover.thirdforest.5pix.5km.master,
-          degradation.spillover.thirdforest.5pix.5km.master,
-          ncol = 1, labels = c("a", "b"), hjust = 0,
-          font.label = list(size = 9))
-
-
-ggsave(path = "Outputs/Figures/Final/SM", filename = "spillover.arr.png",
-       spillover.arr, bg = "white",
-       device = "png", width = 18, height = 18, units = "cm")
-
-## SM analysis 8 - Cutting early years -----------------------------------------
-load("Data/raw/forest.loss.df/masolele.mines.5pixels.third.forest.5km.master.buffer.forest.loss.df.RData")
-master.forest.loss.5pix.5km <- mine.buffer.forest.loss.df
+load("Data/raw/covariates/masolele.mines.final.5pixels.third.forest.final.COVARIATES.RData")
+covariates.5pix <- mine.cluster.points.df
 
 # create relative time to mine covariates and add the covariate data.
 mine.forest.loss.5pix.5km.master.did <- did.prep(master.forest.loss.5pix.5km,
@@ -633,17 +575,14 @@ master.5km.minus2001.DiD <- fit.dynamic.DiD(master.5km.minus2001,
                                                    yname = "cumulative.forest.loss.perc",
                                                    xformula = NULL, method = c("csa", "gardner"))
 
-master.5km.minus2002.DiD <- fit.dynamic.DiD(master.5km.minus2002,
-                                            yname = "cumulative.forest.loss.perc",
-                                            xformula = NULL, method = c("csa", "gardner"))
-
 
 forest.loss.master.5pix2001.plts.f <- plot.DiD2S.f(master.5km.minus2001.DiD, 
                                                pre.yrs = -5, post.yrs = 10, legend = "none",
                                                method = c("csa", "gardner"),
-                                               pre.mine.col = c("black", "black"),
-                                               post.mine.col = c("#d73027", "#d73027"),
+                                               pre.mine.col = c("#4393c3", "#4393c3"),
+                                               post.mine.col = c("#8c510a", "#8c510a"),
                                                y.label = "Forest loss (% points)")
+
 
 # degradation version
 load("Data/raw/degradation.df/masolele.mines.5pixels.third.forest.5km.master.buffer.degradation.df.RData")
@@ -668,6 +607,85 @@ master.degradation.5km.minus2001.DiD <- fit.dynamic.DiD(master.degradation.5km.m
 degradation.master.5pix2001.plts.f <- plot.DiD2S.f(master.degradation.5km.minus2001.DiD, 
                                                    pre.yrs = -5, post.yrs = 10, legend = "none",
                                                    method = c("csa", "gardner"),
-                                                   pre.mine.col = c("black", "black"),
-                                                   post.mine.col = c("#d73027", "#d73027"),
+                                                   pre.mine.col = c("#4393c3", "#4393c3"),
+                                                   post.mine.col = c("#e08214", "#e08214"),
                                                    y.label = "Degradation (% points)")
+
+ DiD.plt.m2001 <-  ggarrange(forest.loss.master.5pix2001.plts.f$`Gardner 2022`,
+                             forest.loss.master.5pix2001.plts.f$`Callaway & Sant'Anna 2021`,
+                             degradation.master.5pix2001.plts.f$`Gardner 2022`,
+                             degradation.master.5pix2001.plts.f$`Callaway & Sant'Anna 2021`,
+                             ncol = 2, nrow = 2, 
+                             labels = c("a", "b", "c", "d"))
+
+ ggsave(path = "Outputs/Figures/Final/SM", 
+        filename = "DiD.plt.m2001.png",
+        DiD.plt.m2001, bg = "white",
+        device = "png", width = 20, height = 13, units = "cm") 
+ 
+## SM analysis 8 - incorporate potential spillover effects ---------------------
+ ## 5 pix third forest
+ load("Data/raw/forest.loss.df/masolele.mines.5pixels.third.forest.5km.master.buffer.forest.loss.df.RData")
+ master.forest.loss.5pix.5km <- mine.buffer.forest.loss.df
+ 
+ mine.forest.loss.5pix.5km.master.did <- did.prep(master.forest.loss.5pix.5km,
+                                                  lead.time = -20, post.time = 20,
+                                                  type = "loss", covariates = covariates.5pix)
+ mine.forest.loss.5pix.5km.master.did.spill <- spill.tidy(mine.forest.loss.5pix.5km.master.did)
+ 
+ forest.loss.spill.5pix.5km <- spillover.dynamic.DiD(mine.forest.loss.5pix.5km.master.did.spill, 
+                                                     yname = "cumulative.forest.loss.perc")
+ 
+ forest.loss.spillover.thirdforest.5pix.5km.master <- ggplot(filter(forest.loss.spill.5pix.5km, year.since > -7 & year.since < 11), 
+                                                             aes(year.since, estimate, colour = effect,
+                                                                 shape = effect)) +
+   geom_point(position = position_dodge(width = .5)) +
+   geom_errorbar(aes(ymin = lci, ymax = uci), width = 0, position = position_dodge(width = .5)) +
+   geom_vline(xintercept = -1) +
+   geom_hline(yintercept = 0, linetype = "dashed") +
+   scale_colour_manual(values = c("black", "grey", "#8c510a")) +
+   scale_shape_manual(values = c(1, 1, 16)) +
+   xlab("Years since mining") +
+   ylab("Forest loss (% points)") +
+   theme_minimal() +
+   theme(legend.title = element_blank(), legend.position = "bottom")
+ 
+ # degradation
+ load("Data/raw/degradation.df/masolele.mines.5pixels.third.forest.5km.master.buffer.degradation.df.RData")
+ master.degradation.5pix.5km <- mine.buffer.forest.loss.df
+ 
+ mine.degradation.5pix.5km.master.did <- did.prep(master.degradation.5pix.5km,
+                                                  lead.time = -20, post.time = 20,
+                                                  type = "degradation", covariates = covariates.5pix)
+ 
+ mine.degradation.5pix.5km.master.did.spill <- spill.tidy(mine.degradation.5pix.5km.master.did)
+ 
+ degradation.spill.5pix.5km <- spillover.dynamic.DiD(mine.degradation.5pix.5km.master.did.spill, 
+                                                     yname = "cumulative.degradation.perc")
+ 
+ degradation.spillover.thirdforest.5pix.5km.master <- ggplot(filter(degradation.spill.5pix.5km, year.since > -7 & year.since < 11), 
+                                                             aes(year.since, estimate, colour = effect,
+                                                                 shape = effect)) +
+   geom_point(position = position_dodge(width = .5)) +
+   geom_errorbar(aes(ymin = lci, ymax = uci), width = 0, position = position_dodge(width = .5)) +
+   geom_vline(xintercept = -1) +
+   geom_hline(yintercept = 0, linetype = "dashed") +
+   scale_colour_manual(values = c("black", "grey", "#e08214")) +
+   scale_shape_manual(values = c(1, 1, 16)) +
+   xlab("Years since mining") +
+   ylab("Degradation (% points)") +
+   theme_minimal() +
+   theme(legend.title = element_blank(), legend.position = "bottom")
+ 
+ 
+ spillover.arr <- ggarrange(forest.loss.spillover.thirdforest.5pix.5km.master,
+                            degradation.spillover.thirdforest.5pix.5km.master,
+                            ncol = 1, labels = c("a", "b"), hjust = 0,
+                            font.label = list(size = 9))
+ 
+ 
+ ggsave(path = "Outputs/Figures/Final/SM", filename = "spillover.arr.png",
+        spillover.arr, bg = "white",
+        device = "png", width = 18, height = 18, units = "cm")
+ 
+ 
